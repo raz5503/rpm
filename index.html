@@ -29,7 +29,7 @@
   <h2>Disk Spin Tracker</h2>
   <video id="video" autoplay playsinline></video>
   <canvas id="canvas" style="display:none;"></canvas>
-  <div id="status">Loading OpenCV...</div>
+  <div id="status">OpenCV লোড হচ্ছে...</div>
 
   <!-- OpenCV.js CDN -->
   <script async src="https://docs.opencv.org/4.7.0/opencv.js" onload="onOpenCvReady()"></script>
@@ -49,13 +49,13 @@
         });
         video.srcObject = stream;
       } catch (e) {
-        alert("Camera access denied.");
+        alert("ক্যামেরা অ্যাক্সেস অনুমতি দেওয়া হয়নি.");
         console.error(e);
       }
     }
 
     function onOpenCvReady() {
-      statusDiv.textContent = "OpenCV Loaded. Starting camera...";
+      statusDiv.textContent = "OpenCV লোড হয়েছে। ক্যামেরা চালু হচ্ছে...";
       startCamera();
       video.addEventListener("play", () => {
         processVideo();
@@ -80,7 +80,7 @@
           cv.HoughCircles(gray, circles, cv.HOUGH_GRADIENT, 1, 100,
             100, 30, 10, 80);
 
-          let spinStatus = "No Disk Detected";
+          let spinStatus = "ডিস্ক পাওয়া যায়নি";
 
           if (circles.rows > 0) {
             let x = circles.data32F[0];
@@ -91,16 +91,16 @@
               let dx = x - lastCircle.x;
               let dy = y - lastCircle.y;
               let dist = Math.sqrt(dx * dx + dy * dy);
-              spinStatus = dist > 3 ? "Spinning" : "Still";
+              spinStatus = dist > 3 ? "ঘুরছে" : "ঠিক আছে";
             } else {
-              spinStatus = "Tracking Started";
+              spinStatus = "ট্র্যাকিং শুরু হচ্ছে";
             }
 
             lastCircle = { x, y };
 
-            statusDiv.textContent = `Disk Position: (${x.toFixed(0)}, ${y.toFixed(0)}), Status: ${spinStatus}`;
+            statusDiv.textContent = `ডিস্ক পজিশন: (${x.toFixed(0)}, ${y.toFixed(0)}), স্ট্যাটাস: ${spinStatus}`;
           } else {
-            statusDiv.textContent = "No Disk Detected";
+            statusDiv.textContent = "ডিস্ক পাওয়া যায়নি";
             lastCircle = null;
           }
         } catch (err) {
