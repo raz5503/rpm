@@ -77,8 +77,10 @@
           cv.GaussianBlur(gray, gray, new cv.Size(9, 9), 2, 2);
 
           // Hough Circle Detection
-          cv.HoughCircles(gray, circles, cv.HOUGH_GRADIENT, 1, 100,
-            100, 30, 10, 80);
+         cv.HoughCircles(
+    gray, circles, cv.HOUGH_GRADIENT, 1, 100, 100, 30, 10, 80
+);
+
 
           let spinStatus = "ডিস্ক পাওয়া যায়নি";
 
