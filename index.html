@@ -1,1 +1,24 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RPM Tracker</title>
+  <style>
+    body { text-align: center; padding: 20px; background-color: #f4f4f9; }
+    video { border: 2px solid black; }
+    canvas { display: none; }
+    #output { font-size: 20px; font-weight: bold; color: #333; }
+  </style>
+</head>
+<body>
+  <h1>RPM Tracker for Analog Meter</h1>
+  <video id="video" width="640" height="480" autoplay></video>
+  <canvas id="canvas" width="640" height="480"></canvas>
+  <div id="output">RPM: 0</div>
+
+  <script async src="https://docs.opencv.org/master/opencv.js" onload="onOpenCvReady();"></script>
+  <script src="app.js"></script>
+</body>
+</html>
