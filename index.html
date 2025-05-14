@@ -1,24 +1,117 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RPM Tracker</title>
+  <title>Analog Disk Spin Tracker</title>
   <style>
-    body { text-align: center; padding: 20px; background-color: #f4f4f9; }
-    video { border: 2px solid black; }
-    canvas { display: none; }
-    #output { font-size: 20px; font-weight: bold; color: #333; }
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    video, canvas {
+      max-width: 480px;
+      width: 100%;
+      border: 2px solid #cb0912;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+    #status {
+      margin: 10px;
+      font-size: 18px;
+    }
   </style>
 </head>
 <body>
-  <h1>RPM Tracker for Analog Meter</h1>
-  <video id="video" width="640" height="480" autoplay></video>
-  <canvas id="canvas" width="640" height="480"></canvas>
-  <div id="output">RPM: 0</div>
+  <h2>Disk Spin Tracker</h2>
+  <video id="video" autoplay playsinline></video>
+  <canvas id="canvas" style="display:none;"></canvas>
+  <div id="status">Loading OpenCV...</div>
 
-  <script async src="https://docs.opencv.org/master/opencv.js" onload="onOpenCvReady();"></script>
-  <script src="app.js"></script>
+  <!-- OpenCV.js CDN -->
+  <script async src="https://docs.opencv.org/4.7.0/opencv.js" onload="onOpenCvReady()"></script>
+
+  <script>
+    let video = document.getElementById('video');
+    let canvas = document.getElementById('canvas');
+    let statusDiv = document.getElementById('status');
+
+    let lastCircle = null;
+
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { exact: "environment" } },
+          audio: false
+        });
+        video.srcObject = stream;
+      } catch (e) {
+        alert("Camera access denied.");
+        console.error(e);
+      }
+    }
+
+    function onOpenCvReady() {
+      statusDiv.textContent = "OpenCV Loaded. Starting camera...";
+      startCamera();
+      video.addEventListener("play", () => {
+        processVideo();
+      });
+    }
+
+    function processVideo() {
+      let cap = new cv.VideoCapture(video);
+      let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+      let gray = new cv.Mat();
+      let circles = new cv.Mat();
+
+      const FPS = 10;
+
+      function detect() {
+        try {
+          cap.read(frame);
+          cv.cvtColor(frame, gray, cv.COLOR_RGBA2GRAY);
+          cv.GaussianBlur(gray, gray, new cv.Size(9, 9), 2, 2);
+
+          // Hough Circle Detection
+          cv.HoughCircles(gray, circles, cv.HOUGH_GRADIENT, 1, 100,
+            100, 30, 10, 80);
+
+          let spinStatus = "No Disk Detected";
+
+          if (circles.rows > 0) {
+            let x = circles.data32F[0];
+            let y = circles.data32F[1];
+            let radius = circles.data32F[2];
+
+            if (lastCircle) {
+              let dx = x - lastCircle.x;
+              let dy = y - lastCircle.y;
+              let dist = Math.sqrt(dx * dx + dy * dy);
+              spinStatus = dist > 3 ? "Spinning" : "Still";
+            } else {
+              spinStatus = "Tracking Started";
+            }
+
+            lastCircle = { x, y };
+
+            statusDiv.textContent = `Disk Position: (${x.toFixed(0)}, ${y.toFixed(0)}), Status: ${spinStatus}`;
+          } else {
+            statusDiv.textContent = "No Disk Detected";
+            lastCircle = null;
+          }
+        } catch (err) {
+          console.error(err);
+        }
+
+        setTimeout(detect, 1000 / FPS);
+      }
+
+      detect();
+    }
+  </script>
 </body>
 </html>
